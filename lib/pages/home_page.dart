@@ -16,23 +16,42 @@ class _HomePageState extends State<HomePage> {
 
   final TextEditingController textController = TextEditingController();
   
- void openNoteBox(){
+ void openNoteBox({String? docID}){
   showDialog(context: context, builder: (context)=> AlertDialog(
+    title: Text(docID == null ? 'Add Note' : 'Edit Note'), 
     content: TextField(
       controller: textController,
     ),
     actions:[
       //button to save
-      ElevatedButton(
-        onPressed: (){
-          //add a new notes
-          firestoreService.addNote(textController.text);
-          //clear the controller
-          textController.clear();
-          //close the box
-          Navigator.pop(context);
-        },
-        child: Text("Add")
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          ElevatedButton(
+            onPressed: (){
+              //add a new notes
+              if(docID == null){
+                firestoreService.addNote(textController.text);
+              }
+              // update an existing
+              else{
+                firestoreService.updateNote(docID, textController.text);
+              }
+              //clear the controller
+              textController.clear();
+              //close the box
+              Navigator.pop(context);
+            },
+            child: Text(docID == null? 'Add' : 'Update'),
+          ),
+          ElevatedButton(
+            onPressed: (){
+              textController.clear();
+              Navigator.pop(context);
+            }, 
+            child: Text('Cancel')
+          ),
+        ],
       )
     ]
   ));
@@ -70,6 +89,21 @@ class _HomePageState extends State<HomePage> {
                 // display as a list tile, UI
                 return ListTile(
                   title: Text(noteText),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      
+                      IconButton(
+                        onPressed: () => openNoteBox(docID: docID), 
+                        icon: const Icon(Icons.settings)),
+
+                      IconButton(
+                        onPressed: ()=> firestoreService.deleteNote(docID),
+                        icon: const Icon(Icons.delete),
+                      )
+                     
+                    ],
+                  ),
                 );
               },
             );
